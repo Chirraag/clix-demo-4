@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Headphones, Globe, ChevronDown } from 'lucide-react';
-import { createCall, connectWebSocket, Language } from './services/ultravox';
+import { createCall, connectWebSocket, connectLiveKit, disconnectLiveKit, Language } from './services/ultravox';
 
 type CallState = 'idle' | 'connecting' | 'connected' | 'disconnected';
 
@@ -30,70 +30,86 @@ function App() {
 
       const callData = await createCall(language);
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          sampleRate: 48000
-        }
-      });
-      mediaStreamRef.current = stream;
+      if (language === 'english') {
+        await connectLiveKit(callData, {
+          onStateChange: (state) => setCallState(state),
+          onDisconnect: () => {
+            setCallState('disconnected');
+            disconnect();
+          },
+          onError: (err) => {
+            console.error('LiveKit error:', err);
+            setError('Connection error occurred');
+            disconnect();
+          }
+        });
+        setCallState('connected');
+      } else {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 48000
+          }
+        });
+        mediaStreamRef.current = stream;
 
-      const audioContext = new AudioContext({ sampleRate: 48000 });
-      audioContextRef.current = audioContext;
+        const audioContext = new AudioContext({ sampleRate: 48000 });
+        audioContextRef.current = audioContext;
 
-      const source = audioContext.createMediaStreamSource(stream);
+        const source = audioContext.createMediaStreamSource(stream);
 
-      await audioContext.audioWorklet.addModule('/audio-processor.js');
-      const audioWorklet = new AudioWorkletNode(audioContext, 'audio-processor');
-      audioWorkletRef.current = audioWorklet;
+        await audioContext.audioWorklet.addModule('/audio-processor.js');
+        const audioWorklet = new AudioWorkletNode(audioContext, 'audio-processor');
+        audioWorkletRef.current = audioWorklet;
 
-      const ws = await connectWebSocket(callData.joinUrl);
-      wsRef.current = ws;
+        const ws = await connectWebSocket(callData.joinUrl);
+        wsRef.current = ws;
 
-      const sendAudio = () => {
-        audioWorklet.port.onmessage = (event) => {
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(event.data);
+        const sendAudio = () => {
+          audioWorklet.port.onmessage = (event) => {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(event.data);
+            }
+          };
+        };
+
+        sendAudio();
+
+        ws.onmessage = async (event) => {
+          if (typeof event.data === 'string') {
+            try {
+              const message = JSON.parse(event.data);
+              console.log('Message received:', message);
+            } catch (e) {
+              console.log('Non-JSON message:', event.data);
+            }
+          } else if (event.data instanceof ArrayBuffer) {
+            const audioData = new Int16Array(event.data);
+            playAudio(audioData);
+          } else if (event.data instanceof Blob) {
+            const arrayBuffer = await event.data.arrayBuffer();
+            const audioData = new Int16Array(arrayBuffer);
+            playAudio(audioData);
           }
         };
-      };
 
-      sendAudio();
+        ws.onclose = () => {
+          setCallState('disconnected');
+          disconnect();
+        };
 
-      ws.onmessage = async (event) => {
-        if (typeof event.data === 'string') {
-          try {
-            const message = JSON.parse(event.data);
-            console.log('Message received:', message);
-          } catch (e) {
-            console.log('Non-JSON message:', event.data);
-          }
-        } else if (event.data instanceof ArrayBuffer) {
-          const audioData = new Int16Array(event.data);
-          playAudio(audioData);
-        } else if (event.data instanceof Blob) {
-          const arrayBuffer = await event.data.arrayBuffer();
-          const audioData = new Int16Array(arrayBuffer);
-          playAudio(audioData);
-        }
-      };
+        ws.onerror = (err) => {
+          console.error('WebSocket error:', err);
+          setError('Connection error occurred');
+          disconnect();
+        };
 
-      ws.onclose = () => {
-        setCallState('disconnected');
-        disconnect();
-      };
+        source.connect(audioWorklet);
+        audioWorklet.connect(audioContext.destination);
 
-      ws.onerror = (err) => {
-        console.error('WebSocket error:', err);
-        setError('Connection error occurred');
-        disconnect();
-      };
-
-      source.connect(audioWorklet);
-      audioWorklet.connect(audioContext.destination);
-
-      setCallState('connected');
+        setCallState('connected');
+      }
     } catch (err) {
       console.error('Failed to start call:', err);
       setError(err instanceof Error ? err.message : 'Failed to start call');
@@ -141,6 +157,8 @@ function App() {
   };
 
   const disconnect = () => {
+    disconnectLiveKit();
+
     audioQueueRef.current.forEach(source => {
       try {
         source.stop();
