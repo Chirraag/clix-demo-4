@@ -1,5 +1,4 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { AccessToken } from "npm:livekit-server-sdk@2.9.3";
 
 const ULTRAVOX_API_KEY = 'e4EbV5aX.t6q7lyOtbphcLZS9zAtSMrrSDR0P2UwQ';
 const ULTRAVOX_API_BASE_URL = 'https://api.ultravox.ai/api';
@@ -154,7 +153,7 @@ async function handleEnglishAgent() {
     const roomName = `voice_assistant_room_${Math.floor(Math.random() * 10_000)}`;
     const agentName = 'calldash-agent';
 
-    const participantToken = createLiveKitToken(
+    const participantToken = await createLiveKitToken(
       {
         identity: participantIdentity,
         name: 'User',
@@ -293,24 +292,60 @@ async function handleHindiAgent() {
   }
 }
 
-function createLiveKitToken(
+async function createLiveKitToken(
   userInfo: { identity: string; name: string; metadata: string },
   roomName: string
-): string {
-  const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
-    identity: userInfo.identity,
+): Promise<string> {
+  const encoder = new TextEncoder();
+  
+  const header = {
+    alg: 'HS256',
+    typ: 'JWT'
+  };
+  
+  const now = Math.floor(Date.now() / 1000);
+  const exp = now + 900;
+  
+  const payload = {
+    exp: exp,
+    iss: LIVEKIT_API_KEY,
+    nbf: now,
+    sub: userInfo.identity,
     name: userInfo.name,
     metadata: userInfo.metadata,
-    ttl: '15m',
-  });
+    video: {
+      room: roomName,
+      roomJoin: true,
+      canPublish: true,
+      canPublishData: true,
+      canSubscribe: true,
+    }
+  };
   
-  at.addGrant({
-    room: roomName,
-    roomJoin: true,
-    canPublish: true,
-    canPublishData: true,
-    canSubscribe: true,
-  });
+  const base64url = (input: Uint8Array): string => {
+    const base64 = btoa(String.fromCharCode(...input));
+    return base64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  };
   
-  return at.toJwt();
+  const headerB64 = base64url(encoder.encode(JSON.stringify(header)));
+  const payloadB64 = base64url(encoder.encode(JSON.stringify(payload)));
+  const message = `${headerB64}.${payloadB64}`;
+  
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(LIVEKIT_API_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  const signature = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    encoder.encode(message)
+  );
+  
+  const signatureB64 = base64url(new Uint8Array(signature));
+  
+  return `${message}.${signatureB64}`;
 }
