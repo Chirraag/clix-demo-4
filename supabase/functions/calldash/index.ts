@@ -153,19 +153,9 @@ async function handleEnglishAgent() {
     const roomName = `voice_assistant_room_${Math.floor(Math.random() * 10_000)}`;
     const agentName = 'calldash-agent';
 
-    const participantToken = await createLiveKitToken(
-      {
-        identity: participantIdentity,
-        name: 'User',
-        metadata: JSON.stringify({
-          agent_id: ENGLISH_AGENT_ID,
-        }),
-      },
-      roomName
-    );
-
+    // First, create the dispatch to ensure agent will join the room
     const dispatchUrl = `https://pipe-9i8t5pt2.livekit.cloud/twirp/livekit.AgentDispatchService/CreateDispatch`;
-    
+
     const dispatchPayload = {
       room: roomName,
       agent_name: agentName,
@@ -176,33 +166,44 @@ async function handleEnglishAgent() {
 
     const authHeader = 'Basic ' + btoa(`${LIVEKIT_API_KEY}:${LIVEKIT_API_SECRET}`);
 
-    try {
-      const dispatchResponse = await fetch(dispatchUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': authHeader,
-        },
-        body: JSON.stringify(dispatchPayload),
-      });
+    const dispatchResponse = await fetch(dispatchUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader,
+      },
+      body: JSON.stringify(dispatchPayload),
+    });
 
-      if (!dispatchResponse.ok) {
-        const errorText = await dispatchResponse.text();
-        console.error('Dispatch failed:', errorText);
-      } else {
-        const dispatchData = await dispatchResponse.json();
-        console.log('Dispatch created:', dispatchData);
-      }
-    } catch (dispatchError) {
-      console.error('Dispatch error:', dispatchError);
+    if (!dispatchResponse.ok) {
+      const errorText = await dispatchResponse.text();
+      console.error('Dispatch failed:', errorText);
+      throw new Error(`Failed to dispatch agent: ${errorText}`);
     }
 
+    const dispatchData = await dispatchResponse.json();
+    console.log('Dispatch created:', dispatchData);
+
+    // Now create the participant token
+    const participantToken = await createLiveKitToken(
+      {
+        identity: participantIdentity,
+        name: 'User',
+        metadata: 'user-metadata',
+        attributes: {
+          agentId: ENGLISH_AGENT_ID,
+        },
+      },
+      roomName
+    );
+
     const data = {
-      callId: roomName,
-      joinUrl: LIVEKIT_URL,
-      participantToken: participantToken,
       serverUrl: LIVEKIT_URL,
       roomName: roomName,
+      participantToken: participantToken,
+      participantName: participantIdentity,
+      callId: roomName,
+      joinUrl: LIVEKIT_URL,
     };
 
     return new Response(
@@ -293,20 +294,20 @@ async function handleHindiAgent() {
 }
 
 async function createLiveKitToken(
-  userInfo: { identity: string; name: string; metadata: string },
+  userInfo: { identity: string; name: string; metadata: string; attributes?: Record<string, string> },
   roomName: string
 ): Promise<string> {
   const encoder = new TextEncoder();
-  
+
   const header = {
     alg: 'HS256',
     typ: 'JWT'
   };
-  
+
   const now = Math.floor(Date.now() / 1000);
-  const exp = now + 900;
-  
-  const payload = {
+  const exp = now + 900; // 15 minutes
+
+  const payload: any = {
     exp: exp,
     iss: LIVEKIT_API_KEY,
     nbf: now,
@@ -321,16 +322,21 @@ async function createLiveKitToken(
       canSubscribe: true,
     }
   };
-  
+
+  // Add attributes if provided (like the reference code)
+  if (userInfo.attributes) {
+    payload.attributes = userInfo.attributes;
+  }
+
   const base64url = (input: Uint8Array): string => {
     const base64 = btoa(String.fromCharCode(...input));
     return base64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
   };
-  
+
   const headerB64 = base64url(encoder.encode(JSON.stringify(header)));
   const payloadB64 = base64url(encoder.encode(JSON.stringify(payload)));
   const message = `${headerB64}.${payloadB64}`;
-  
+
   const key = await crypto.subtle.importKey(
     'raw',
     encoder.encode(LIVEKIT_API_SECRET),
@@ -338,14 +344,14 @@ async function createLiveKitToken(
     false,
     ['sign']
   );
-  
+
   const signature = await crypto.subtle.sign(
     'HMAC',
     key,
     encoder.encode(message)
   );
-  
+
   const signatureB64 = base64url(new Uint8Array(signature));
-  
+
   return `${message}.${signatureB64}`;
 }
