@@ -1,7 +1,6 @@
 import { Room } from 'livekit-client';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export type Language = 'hindi' | 'english';
 
@@ -16,31 +15,52 @@ interface CallResponse {
 let livekitRoom: Room | null = null;
 
 export async function createCall(language: Language): Promise<CallResponse> {
-  const apiUrl = `${SUPABASE_URL}/functions/v1/calldash`;
+  if (language === 'english') {
+    const apiUrl = `${SUPABASE_URL}/functions/v1/connection-details`;
 
-  const response = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify({ language }),
-  });
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to create call: ${error}`);
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to create call: ${error}`);
+    }
+
+    const data = await response.json();
+    console.log('LiveKit connection data received:', data);
+    return {
+      callId: data.callId,
+      joinUrl: data.joinUrl,
+      participantToken: data.participantToken,
+      serverUrl: data.serverUrl,
+      roomName: data.roomName,
+    };
+  } else {
+    const apiUrl = `${SUPABASE_URL}/functions/v1/ultravox-proxy`;
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to create call: ${error}`);
+    }
+
+    const data = await response.json();
+    console.log('Ultravox call data received:', data);
+    return {
+      callId: data.callId,
+      joinUrl: data.joinUrl,
+    };
   }
-
-  const data = await response.json();
-  console.log('Call data received:', data);
-  return {
-    callId: data.callId,
-    joinUrl: data.joinUrl,
-    participantToken: data.participantToken,
-    serverUrl: data.serverUrl,
-    roomName: data.roomName,
-  };
 }
 
 export function connectWebSocket(joinUrl: string): Promise<WebSocket> {
