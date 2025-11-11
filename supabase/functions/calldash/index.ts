@@ -377,10 +377,8 @@ async function createServerToken(): Promise<string> {
       roomList: true,
       roomRecord: true,
       roomAdmin: true,
+      agentDispatch: true,
       room: '*',
-      canPublish: true,
-      canPublishData: true,
-      canSubscribe: true,
     }
   };
 
