@@ -372,12 +372,12 @@ async function createServerToken(): Promise<string> {
     exp: exp,
     iss: LIVEKIT_API_KEY,
     nbf: now,
+    sub: LIVEKIT_API_KEY,  // Add subject claim - required for server tokens
     video: {
       roomCreate: true,
       roomList: true,
       roomRecord: true,
       roomAdmin: true,
-      agentDispatch: true,
       room: '*',
     }
   };
