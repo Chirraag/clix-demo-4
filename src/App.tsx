@@ -248,7 +248,7 @@ function App() {
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
         <div className="max-w-md w-full text-center">
           <h1 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 tracking-wider" style={{ color: '#E91E63' }}>
-            DSA VOICE BOT DEMO
+            LOAN DISBURSEMENT VOICE BOT DEMO
           </h1>
 
           {isEnglishMode ? (
