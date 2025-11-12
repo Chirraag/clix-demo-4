@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { AgentDispatchClient, AccessToken } from "npm:livekit-server-sdk@2.9.0";
 
-const ULTRAVOX_API_KEY = Deno.env.get('ULTRAVOX_API_KEY') || '';
+const ULTRAVOX_API_KEY = Deno.env.get('ULTRAVOX_API_KEY') || '3BrmlxOk.748Z6FekQpwKPQaoMUXQH07ubWRsQofp';
 const ULTRAVOX_API_BASE_URL = 'https://api.ultravox.ai/api';
 const HINDI_AGENT_ID = Deno.env.get('HINDI_AGENT_ID') || 'ad69ddb2-363f-4279-adf4-5961f127ec2f';
 
