@@ -5,8 +5,8 @@ const ULTRAVOX_API_KEY = Deno.env.get('ULTRAVOX_API_KEY') || 'e4EbV5aX.t6q7lyOtb
 const ULTRAVOX_API_BASE_URL = 'https://api.ultravox.ai/api';
 const HINDI_AGENT_ID = Deno.env.get('HINDI_AGENT_ID') || 'ad69ddb2-363f-4279-adf4-5961f127ec2f';
 
-const LIVEKIT_API_KEY = Deno.env.get('LIVEKIT_API_KEY') || '';
-const LIVEKIT_API_SECRET = Deno.env.get('LIVEKIT_API_SECRET') || '';
+const LIVEKIT_API_KEY = Deno.env.get('LIVEKIT_API_KEY') || 'APIrnvUvfrWt8E6';
+const LIVEKIT_API_SECRET = Deno.env.get('LIVEKIT_API_SECRET') || '1GszXTXxjfCqAm9emwPeDvsdYZ6mVmudLpvoMLNHjrrA';
 const LIVEKIT_URL = Deno.env.get('LIVEKIT_URL') || 'wss://pipe-9i8t5pt2.livekit.cloud';
 const LIVEKIT_HTTP_URL = Deno.env.get('LIVEKIT_URL')?.replace('wss://', 'https://') || 'https://pipe-9i8t5pt2.livekit.cloud';
 const ENGLISH_AGENT_ID = Deno.env.get('ENGLISH_AGENT_ID') || '1fzxSZCTgdiUk9R5ly151';
