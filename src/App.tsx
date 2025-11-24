@@ -238,8 +238,8 @@ function App() {
       <header className="w-full py-4 sm:py-8">
         <div className="container mx-auto px-4 flex justify-center">
           <img
-            src="https://www.clix.capital/wp-content/themes/clix/assets/resources/img/Logo.png"
-            alt="CLIX Capital"
+            src="https://uidai.gov.in/images/langPage/Page-1.svg"
+            alt="AADHAAR"
             className="h-8 sm:h-12"
           />
         </div>
@@ -248,7 +248,7 @@ function App() {
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
         <div className="max-w-md w-full text-center">
           <h1 className="text-2xl sm:text-3xl font-bold mb-8 sm:mb-12 tracking-wider" style={{ color: '#E91E63' }}>
-            LOAN DISBURSEMENT VOICE BOT DEMO
+            AADHAAR Helpdesk
           </h1>
 
           {isEnglishMode ? (
