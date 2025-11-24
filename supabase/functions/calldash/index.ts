@@ -9,7 +9,7 @@ const LIVEKIT_API_KEY = Deno.env.get('LIVEKIT_API_KEY') || 'APIrnvUvfrWt8E6';
 const LIVEKIT_API_SECRET = Deno.env.get('LIVEKIT_API_SECRET') || '1GszXTXxjfCqAm9emwPeDvsdYZ6mVmudLpvoMLNHjrrA';
 const LIVEKIT_URL = Deno.env.get('LIVEKIT_URL') || 'wss://pipe-9i8t5pt2.livekit.cloud';
 const LIVEKIT_HTTP_URL = Deno.env.get('LIVEKIT_URL')?.replace('wss://', 'https://') || 'https://pipe-9i8t5pt2.livekit.cloud';
-const ENGLISH_AGENT_ID = Deno.env.get('ENGLISH_AGENT_ID') || 'agent_6fc4f826d237';
+const ENGLISH_AGENT_ID = Deno.env.get('ENGLISH_AGENT_ID') || 'tQx4M9Ddcda5BBCyZ6FDz';
 
 const HINDI_SYSTEM_PROMPT = `## पहचान (ROLE)
 
