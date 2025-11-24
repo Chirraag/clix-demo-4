@@ -236,10 +236,16 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
       <header className="w-full py-4 sm:py-8">
-        <div className="container mx-auto px-4 flex justify-center">
+        <div className="container mx-auto px-4 flex justify-center items-center gap-6 sm:gap-8">
           <img
             src="https://uidai.gov.in/images/langPage/Page-1.svg"
             alt="AADHAAR"
+            className="h-8 sm:h-12"
+          />
+          <div className="h-8 sm:h-10 w-px bg-slate-300"></div>
+          <img
+            src="https://www.orbitindia.net/wp-content/uploads/2024/05/Orbit-Logo-Final-1.svg"
+            alt="Orbit India"
             className="h-8 sm:h-12"
           />
         </div>
