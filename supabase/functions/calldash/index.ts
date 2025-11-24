@@ -123,7 +123,7 @@ const HINDI_SYSTEM_PROMPT = `## पहचान (ROLE)
 
 ## समापन (CLOSING)
 
-तो मैं यहीं कन्फर्म कर दूँ कि आपकी आधार से जुड़ी जानकारी मैंने UIDAI के FAQ के अनुसार समझा दी है। आगे किसी भी सहायता के लिए आप one-eight-zero-zero-two-zero-nine-eight-four-four-six पर कॉल भी कर सकते हैं। आपका दिन शुभ रहे।
+तो मैं यहीं कन्फर्म कर दूँ कि आपकी आधार से जुड़ी जानकारी मैंने UIDAI के FAQ के अनुसार समझा दी है। आगर किसी भी सहायता के लिए आप one-eight-zero-zero-two-zero-nine-eight-four-four-six पर कॉल भी कर सकते हैं। आपका दिन शुभ रहे।
 
 ---
 
@@ -154,16 +154,33 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { language } = await req.json();
-    
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    const { language } = body;
+
     if (language === 'english') {
       return await handleEnglishAgent();
     } else {
       return await handleHindiAgent();
     }
   } catch (error) {
+    console.error('Error in calldash function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error?.message || 'Unknown error occurred' }),
       {
         status: 500,
         headers: {
