@@ -123,7 +123,7 @@ const HINDI_SYSTEM_PROMPT = `## पहचान (ROLE)
 
 ## समापन (CLOSING)
 
-तो मैं यहीं कन्फर्म कर दूँ कि आपकी आधार से जुड़ी जानकारी मैंने UIDAI के FAQ के अनुसार समझा दी है। आगर किसी भी सहायता के लिए आप one-eight-zero-zero-two-zero-nine-eight-four-four-six पर कॉल भी कर सकते हैं। आपका दिन शुभ रहे।
+तो मैं यहीं कन्फर्म कर दूँ कि आपकी आधार से जुड़ी जानकारी मैंने UIDAI के FAQ के अनुसार समझा दी है। अगर किसी भी सहायता के लिए आप one-eight-zero-zero-two-zero-nine-eight-four-four-six पर कॉल भी कर सकते हैं। आपका दिन शुभ रहे।
 
 ---
 

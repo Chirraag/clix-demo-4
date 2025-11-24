@@ -14,29 +14,39 @@ interface CallResponse {
 export async function createCall(language: Language): Promise<CallResponse> {
   const apiUrl = `${SUPABASE_URL}/functions/v1/calldash`;
 
-  const response = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify({ language }),
-  });
+  console.log('Creating call with:', { language, apiUrl });
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to create call: ${error}`);
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ language }),
+    });
+
+    console.log('Response status:', response.status);
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Error response:', error);
+      throw new Error(`Failed to create call: ${error}`);
+    }
+
+    const data = await response.json();
+    console.log('Call data received:', data);
+    return {
+      callId: data.callId,
+      joinUrl: data.joinUrl,
+      participantToken: data.participantToken,
+      serverUrl: data.serverUrl,
+      roomName: data.roomName,
+    };
+  } catch (error) {
+    console.error('Fetch error:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  console.log('Call data received:', data);
-  return {
-    callId: data.callId,
-    joinUrl: data.joinUrl,
-    participantToken: data.participantToken,
-    serverUrl: data.serverUrl,
-    roomName: data.roomName,
-  };
 }
 
 export function connectWebSocket(joinUrl: string): Promise<WebSocket> {
