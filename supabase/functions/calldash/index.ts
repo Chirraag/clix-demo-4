@@ -121,7 +121,7 @@ const HINDI_SYSTEM_PROMPT = `## पहचान (ROLE)
 
 ---
 
-## समापन (CLOSING)
+## समापन (CLOSING) (If anyone says bye or dhanyawad)
 
 Thank you. अगर आगे कुछ पूछना हो तो UIDAI का नंबर one-eight-zero-zero-two-zero-nine-eight-four-four-six आपके लिए उपलब्ध है।
 
